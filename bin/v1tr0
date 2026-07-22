@@ -1,0 +1,12 @@
+#!/bin/bash
+
+V1TR0_VERSION="1.0.0"
+
+case "$1" in
+  --version|-v)
+    echo "v1tr0 $V1TR0_VERSION"
+    ;;
+  *)
+    omarchy "$@" | sed 's/\bOmarchy\b/v1tr0/gI'
+    ;;
+esac
