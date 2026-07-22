@@ -31,3 +31,15 @@ config/spotify/Users/
 
 # LibreOffice (regenerates on launch)
 config/libreoffice/.~lock.*
+
+# VSCode volatile data (copilot sessions, history, sync)
+config/Code/User/workspaceStorage/
+config/Code/User/History/
+config/Code/User/globalStorage/github.copilot-chat/
+config/Code/User/sync/
+
+# OBS logs
+config/obs-studio/logs/
+
+# Unity3d game data (not configuration)
+config/unity3d/
