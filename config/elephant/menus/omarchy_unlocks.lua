@@ -1,0 +1,1 @@
+/home/efren-cyborg/.local/share/omarchy/default/elephant/omarchy_unlocks.lua

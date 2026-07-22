@@ -1,0 +1,21 @@
+{
+   "version": 4,
+   "mode": "MODE_VIDEO",
+   "data_source": {
+      "0xD0A2": "",
+      "LS24DG30X": "",
+      "Default": "/home/efren-cyborg/Videos/Hidamari/mixkit-green-vailed-chameleon-seen-from-one-side-1489-4k.mp4",
+      "eDP-1": "/home/efren-cyborg/Videos/Hidamari/mixkit-green-vailed-chameleon-seen-from-one-side-1489-4k.mp4",
+      "HDMI-A-1": "/home/efren-cyborg/Videos/Hidamari/mixkit-green-vailed-chameleon-seen-from-one-side-1489-4k.mp4"
+   },
+   "is_mute": false,
+   "audio_volume": 50,
+   "is_static_wallpaper": true,
+   "static_wallpaper_blur_radius": 5,
+   "is_pause_when_maximized": true,
+   "is_mute_when_maximized": false,
+   "fade_duration_sec": 1.5,
+   "fade_interval": 0.1,
+   "is_show_systray": false,
+   "is_first_time": false
+}

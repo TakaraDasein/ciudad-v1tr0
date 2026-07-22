@@ -1,0 +1,37 @@
+{                    
+    
+    "chat.mcp.gallery.enabled": true,
+    "workbench.iconTheme": "material-icon-theme",
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "git.autofetch": true,
+    "yaml.schemas": {
+        "file:///home/efren-cyborg/.vscode/extensions/continue.continue-1.2.16-linux-x64/config-yaml-schema.json": [
+            ".continue/**/*.yaml"
+        ],
+        "file:///home/efren-cyborg/.vscode/extensions/continue.continue-1.2.17-linux-x64/config-yaml-schema.json": [
+            ".continue/**/*.yaml"
+        ],
+        "file:///home/efren-cyborg/.vscode/extensions/continue.continue-1.2.18-linux-x64/config-yaml-schema.json": [
+            ".continue/**/*.yaml"
+        ],
+        "file:///home/efren-cyborg/.vscode/extensions/continue.continue-1.2.22-linux-x64/config-yaml-schema.json": [
+            ".continue/**/*.yaml"
+        ],
+        "file:///home/efren-cyborg/.vscode/extensions/continue.continue-2.0.0-linux-x64/config-yaml-schema.json": [
+            ".continue/**/*.yaml"
+        ]
+    },
+    "window.menuBarVisibility": "compact",
+    "claudeCode.preferredLocation": "panel",
+    "editor.fontSize": 20,
+    "editor.cursorBlinking": "smooth",
+    "editor.cursorStyle": "underline",
+    "files.autoSave": "onFocusChange",
+    "workbench.activityBar.compact": true,
+    "workbench.activityBar.location": "top",
+    "chat.editor.fontSize": 20,
+    "chat.fontSize": 20,
+    "workbench.statusBar.visible": false,
+    "chat.viewSessions.orientation": "stacked",
+    "window.newWindowProfile": "Default",
+}

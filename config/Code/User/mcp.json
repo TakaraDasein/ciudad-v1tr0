@@ -1,0 +1,19 @@
+{
+    "servers": {
+        "pencil": {
+            "command": "/home/efren-cyborg/.pencil/mcp/visual_studio_code/out/mcp-server-linux-x64",
+            "args": [
+                "--app",
+                "visual_studio_code",
+                "--agent",
+                "copilotIDE"
+            ],
+            "env": {},
+            "type": "stdio"
+        },
+        "codebase-memory-mcp": {
+            "type": "stdio",
+            "command": "/home/efren-cyborg/.local/bin/codebase-memory-mcp"
+        }
+    }
+}

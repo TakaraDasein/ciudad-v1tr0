@@ -1,0 +1,296 @@
+{
+    "telemetry.sqmId": "",
+    "telemetry.machineId": "d8a624b8cf0371febf64a0207a20eef51ec7d5e11a598d4655d10ca1edd0efd3",
+    "telemetry.devDeviceId": "c8f7869d-7f61-40f7-a4fc-726ec29a1b22",
+    "backupWorkspaces": {
+        "workspaces": [],
+        "folders": [
+            {
+                "folderUri": "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/6.v1tr0-sistema-operativo"
+            }
+        ],
+        "emptyWindows": []
+    },
+    "windowControlHeight": 35,
+    "profileAssociations": {
+        "workspaces": {
+            "file:///home/efren-cyborg/Cyborg-Town/Daten-Town/portafolio/Portafolio_Efren-master": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/plataforma-sorteo": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/2.Daten-Town/portafolio/Portafolio_Efren-master": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.%20proyectos-endogenos/v1tr0-web": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.%20proyectos-endogenos/web-html-export": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/web-html-export/v1tr0-html-viewer": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/pet-gourmet/web-petgourtmet": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/pet-gourmet/web-petgourtmet-main": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/2.Daten-Town/manuales-desarrollo": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/tu-arbol-mapa": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/juego-html": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/ia-maching": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/cafe-finca": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/v1tr0-fondo": "__default__profile__",
+            "file:///home/efren-cyborg": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/1.hotel-sistem/hotel-sistem": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/juego-html/v1tr0-runner": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/4.remotion": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/Limpieza%20%26%20Aseo": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/Limpieza%20%26%20Aseo/mister-lya-web": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/Limpieza%20%26%20Aseo/mister-lya-web/lya-catalogo": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/Limpieza%20%26%20Aseo/mister-lya-web/lya-catalogo/planetary-pegasi": "__default__profile__",
+            "file:///home/efren-cyborg/Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/Limpieza%20%26%20Aseo/mister-lya-web/lya-catalogo/galactic-giant": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/1.competencias/1.Hackathon-UNGRD-PNUD/Erosi%C3%B3n%20Costera/proyecto": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/1.competencias/1.Hackathon-UNGRD-PNUD/Erosi%C3%B3n%20Costera/1.revicionx": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/1.v1tr0-web": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/2.portafolio/Portafolio_Efren-master": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/1.competencias/1.Hackathon-UNGRD-PNUD/slides": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/1.competencias/presentacion-o-upala-mma": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/5.herramientas/compresor_imagenes": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/Limpieza%20%26%20Aseo/limpieza-aseo": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/pet-gourmet/web-petgourtmet-main": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/0.%20Investigaciones-NewTime/experimentos%20ensayisticos": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/3.V1TR0-Town/2.proyectos-exogenos/pet-gourmet": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/2.risegos%20climatico/riesgos-climaticos-colombia": "__default__profile__",
+            "file:///home/efren-cyborg/Downloads/sitio-web-de-fotografia": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/3.V1TR0-Town/1.proyectos-endogenos-/1.v1tr0-proyec/1.v1tr0-web": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/5.Aluna-code/2.Proyecto": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/5.Aluna-code/1.Investigaci%C3%B3n/repositorios-por-procesar/codebase-memory-mcp-main": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/5.Aluna-code/1.Investigaci%C3%B3n/repositorios-por-procesar/memora": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/5.Aluna-code/2.Proyecto/repositorios-impresindibles-limpios/memora": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/5.Aluna-code/1.Investigaci%C3%B3n/documentacion": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/5.Aluna-code/2.Proyecto/0.0%20aluna": "__default__profile__",
+            "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/6.v1tr0-sistema-operativo": "__default__profile__"
+        },
+        "emptyWindows": {}
+    },
+    "windowsState": {
+        "lastActiveWindow": {
+            "folder": "file:///home/efren-cyborg/1.Cyborg-Town/2.Daten-Town/6.v1tr0-sistema-operativo",
+            "backupPath": "/home/efren-cyborg/.config/Code/Backups/d928c36adda5a87ca03efa75847f5b44",
+            "uiState": {
+                "mode": 0,
+                "x": 1,
+                "y": 0,
+                "width": 950,
+                "height": 1021
+            }
+        },
+        "openedWindows": []
+    },
+    "theme": "vs-dark",
+    "themeBackground": "#121314",
+    "windowSplash": {
+        "zoomLevel": 0,
+        "baseTheme": "vs-dark",
+        "colorInfo": {
+            "foreground": "#bfbfbf",
+            "background": "#121314",
+            "editorBackground": "#121314",
+            "titleBarBackground": "#191a1b",
+            "titleBarBorder": "#2a2b2c",
+            "activityBarBackground": "#191a1b",
+            "activityBarBorder": "#2a2b2c",
+            "sideBarBackground": "#191a1b",
+            "sideBarBorder": "#2a2b2c",
+            "statusBarBackground": "#191a1b",
+            "statusBarBorder": "#2a2b2c",
+            "statusBarNoFolderBackground": "#191a1b"
+        },
+        "layoutInfo": {
+            "sideBarSide": "left",
+            "editorPartMinWidth": 220,
+            "titleBarHeight": 35,
+            "activityBarWidth": 0,
+            "sideBarWidth": 235,
+            "auxiliaryBarWidth": 0,
+            "statusBarHeight": 0,
+            "windowBorder": false
+        }
+    },
+    "windowSplashWorkspaceOverride": {
+        "layoutInfo": {
+            "sideBarWidth": 235,
+            "auxiliaryBarWidth": 235,
+            "workspaces": {
+                "8ed2ca4118243197ef338c4835dfea6e": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "e5bb21c7bfb9ea5d1884b74616c15bfd": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "567bb3bf085578cd3c0dd300130bed81": {
+                    "sideBarVisible": false,
+                    "auxiliaryBarVisible": true
+                },
+                "e27f9b42602dd08ae4a350ef0296d5a3": {
+                    "sideBarVisible": false,
+                    "auxiliaryBarVisible": true
+                },
+                "b6d1e2a053a60bce9b5934444a0a3bf3": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "4d8a0ae9c2a94497de3071a558752172": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "da6feaff41e4e2a2dce3cc316534c4c4": {
+                    "sideBarVisible": false,
+                    "auxiliaryBarVisible": true
+                },
+                "ef4dfbbaf33858a55715b7f5eb20f2e7": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "b74ad4a0566ecb8570502268a0e89de9": {
+                    "sideBarVisible": false,
+                    "auxiliaryBarVisible": true
+                },
+                "81081524de41639f866b7a985d65d746": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "21c67865615fbb484a2cdf8725d29b89": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "1258f80b04968d25f3df34babfa44cda": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "f1066e1713d04758638550cc77d777fa": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "7fb2497e051a7f02d9f6c3b0a90dfa82": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "6dd12b785ac9a84ef067f203b2d63d3e": {
+                    "sideBarVisible": false,
+                    "auxiliaryBarVisible": true
+                },
+                "638b3b61c7e6d3a4aea5dbdaa2b9048c": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "249dfabc8da3206c288f0ed9d01959e1": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "5566462aa7db3095533e52e763249991": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "e50ddaa22dc9759219db2565f6206405": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "8fb428621e9fc7acea13573da198717f": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "994553a9dd2124898894cc5e4b7d07c0": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "f8b69ee6afcf2b4f35170877d07ad5b9": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "71ad9f2506317576c72cfa56c4ffee71": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "9db92018ef2b589f7b5497d58fe672d7": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "4ae95042dd56e1f7f9a425f0bd5a358d": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "83308ecb262a8ed417dcfe36b6c5aca8": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "8470cf4dd97ded4c018acf61e0901f9c": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "b71214160919dbbc2aaae72f35942f05": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "ea3fa0da7f4d8fb42a4432ec2a85795a": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "da3d2cc475a7fc4f9772d1d1b08d0291": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "c80158cb8117124829698f673d51a643": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "2298137a05a7e79ab92fcbbcfb7799e3": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "48a99622966d2c480640a24fee5e5d7f": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "42263b1b57d30054ae5f95d440f8b625": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "a5cb8f74488c17ff5148b305448d49d4": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "db62cd780ad4ea23d5e057b3a5b591e9": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "0abe79b0732be7669961ef64cca43109": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "af4e19006996b631a1b4c7811ed6c23f": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "b7f094c2f6b38430f11102e5be850398": {
+                    "sideBarVisible": false,
+                    "auxiliaryBarVisible": false
+                },
+                "ad1f426e882daafae722e41a47608aeb": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                },
+                "bae56a6759408b882d59f8c8947499a4": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": false
+                }
+            }
+        }
+    },
+    "userDataProfiles": [
+        {
+            "location": "builtin/agents",
+            "name": "Agents",
+            "useDefaultFlags": {
+                "settings": true,
+                "keybindings": true,
+                "prompts": true,
+                "mcp": true,
+                "languageModels": true,
+                "snippets": true,
+                "tasks": true,
+                "extensions": true
+            }
+        }
+    ]
+}

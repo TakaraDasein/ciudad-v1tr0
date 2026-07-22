@@ -10,3 +10,9 @@ source "$OMARCHY_PATH/default/bash/rc"
 #
 # Make an alias for invoking commands you use constantly
 # alias p='python'
+
+# v1tr0 — accent-colored directory listings
+export LS_COLORS="di=01;36:ln=36:ex=01;32:fi=00:*.txt=00"
+
+# v1tr0 — show logo on terminal startup
+fastfetch --logo-type kitty --logo "$HOME/.config/omarchy/branding/logos/v1tr0.png" --logo-width 60 --logo-height 26

@@ -1,0 +1,211 @@
+@import "../omarchy/current/theme/waybar.css";
+
+@define-color bar_bg alpha(@background, 0.35);
+@define-color module_bg alpha(@background, 0.50);
+
+* {
+  background-color: transparent;
+  color: @foreground;
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  font-family: 'CaskaydiaMono Nerd Font Mono';
+  font-size: 16px;
+}
+
+window#waybar {
+  background-color: transparent;
+  margin: 8px 120px 0 120px;
+  border-radius: 16px;
+  padding: 4px 6px;
+  border: none;
+}
+
+.modules-left {
+  margin-left: 8px;
+}
+
+.modules-right {
+  margin-right: 8px;
+}
+
+#workspaces,
+#clock,
+#custom-update,
+#custom-voxtype,
+
+#tray,
+#bluetooth,
+#network,
+#pulseaudio,
+#cpu,
+#battery,
+#custom-omarchy,
+#custom-v1tr0,
+#custom-opencode,
+#custom-expand-icon {
+  background-color: @module_bg;
+  border-radius: 12px;
+  padding: 2px 10px;
+  margin: 4px 4px;
+  transition: background-color 0.3s ease;
+}
+
+#workspaces {
+  background-color: @background;
+}
+
+#workspaces:hover,
+#clock:hover,
+#custom-update:hover,
+#custom-voxtype:hover,
+#tray:hover,
+#bluetooth:hover,
+#network:hover,
+#pulseaudio:hover,
+#cpu:hover,
+#battery:hover,
+#custom-omarchy:hover,
+#custom-v1tr0:hover,
+#custom-opencode:hover,
+#custom-expand-icon:hover {
+  background-color: @background;
+}
+
+#workspaces button {
+  all: unset;
+  font-size: 48px;
+  color: @foreground;
+  padding: 0 8px;
+  margin: 0 2px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  transition: all 0.3s ease;
+  opacity: 1;
+}
+
+#workspaces button.empty {
+  opacity: 0.3;
+}
+
+#workspaces button.active {
+  color: #2dd4bf;
+  background-color: rgba(45, 212, 191, 0.2);
+  border-radius: 50%;
+  padding: 4px 6px;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
+  opacity: 1;
+}
+
+#cpu,
+#battery,
+#pulseaudio,
+#custom-omarchy,
+#custom-v1tr0 {
+  min-width: 12px;
+}
+
+#custom-v1tr0 {
+  background-image: url("/home/efren-cyborg/.config/waybar/icons/v1tr0.svg");
+  background-size: 20px 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: @module_bg;
+  border-radius: 12px;
+  padding: 2px 10px;
+  margin: 4px 4px;
+  transition: background-color 0.3s ease;
+}
+
+#custom-v1tr0.widget-button:active {
+  background-color: #26FFDF;
+}
+
+#custom-v1tr0 widget {
+  color: transparent;
+}
+
+#custom-opencode {
+  background-image: url("/home/efren-cyborg/.config/waybar/icons/opencode.svg");
+  background-size: 20px 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: @module_bg;
+  border-radius: 12px;
+  padding: 2px 10px;
+  margin: 4px 4px;
+  transition: background-color 0.3s ease;
+}
+
+#custom-opencode.widget-button:active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+#custom-opencode widget {
+  color: transparent;
+}
+
+#cpu,
+#custom-voxtype,
+#bluetooth,
+#network,
+#tray,
+#custom-expand-icon {
+  min-width: 12px;
+}
+
+tooltip {
+  padding: 2px;
+}
+
+#custom-update {
+  font-size: 10px;
+}
+
+#clock {
+  margin-left: 8.75px;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+
+#custom-screenrecording-indicator,
+#custom-idle-indicator,
+#custom-notification-silencing-indicator {
+  min-width: 12px;
+  margin-left: 5px;
+  margin-right: 0;
+  font-size: 10px;
+  padding-bottom: 1px;
+}
+
+#custom-screenrecording-indicator.active {
+  color: #a55555;
+}
+
+#custom-voxtype {
+  min-width: 12px;
+}
+
+#custom-voxtype.recording {
+  color: #a55555;
+}
+
+#custom-idle-indicator.active,
+#custom-notification-silencing-indicator.active {
+  color: #a55555;
+}
+
+#custom-weather {
+  margin-left: 7.5px;
+  margin-right: 7.5px;
+}
+
+#custom-weather.unavailable {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Abrir apps en el workspace actual
+hyprctl dispatch exec 'ghostty -e btop'
+hyprctl dispatch exec 'ghostty -e tty-clock -c -C 6'
+hyprctl dispatch exec 'ghostty -e calcurse'
+hyprctl dispatch exec 'youtube-music'
+hyprctl dispatch exec 'ghostty -e joshuto'

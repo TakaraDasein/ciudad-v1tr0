@@ -1,0 +1,11 @@
+[SddmGreeterTheme]
+Name=V1TR0 Universal
+Description=Tema SDDM personalizado con logo V1TR0, glow y caja de contrasena redondeada
+Author=efren-cyborg
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=v1tr0-universal
+Theme-API=2.0

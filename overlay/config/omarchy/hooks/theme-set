@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ "$1" = "efren-cyborg" ]; then
+    pkill -x swaybg
+    awww-daemon &
+    sleep 1
+    awww img -o eDP-1 ~/.config/omarchy/themes/efren-cyborg/backgrounds/14.gif
+    awww img -o HDMI-A-1 ~/.config/omarchy/themes/efren-cyborg/backgrounds/41.gif
+    awww img -o DP-1 ~/.config/omarchy/themes/efren-cyborg/backgrounds/16.gif
+fi
+
+if [ "$1" = "osaka-jade" ]; then
+    pkill -x swaybg
+    awww-daemon &
+    sleep 1
+    awww img -o eDP-1 ~/.config/omarchy/themes/osaka-jade/backgrounds/23.gif
+    awww img -o HDMI-A-1 ~/.config/omarchy/themes/osaka-jade/backgrounds/29.gif
+fi
+

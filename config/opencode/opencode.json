@@ -1,5 +1,59 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "theme": "system",
-  "autoupdate": false
+  "autoupdate": false,
+  "provider": {
+    "lmstudio": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LM Studio (local)",
+      "options": {
+        "baseURL": "http://127.0.0.1:1234/v1",
+        "apiKey": "lmstudio"
+      },
+      "models": {
+        "qwen/qwen3.6-27b": {
+          "name": "Qwen3.6 27B (local)"
+        },
+        "google/gemma-4-e2b": {
+          "name": "Gemma 4 E2B (local)"
+        },
+        "qwen/qwen3.5-9b": {
+          "name": "Qwen3.5 9B (local)"
+        }
+      }
+    }
+  },
+  "model": "lmstudio/google/gemma-4-e2b",
+  "mcp": {
+    "pencil": {
+      "command": [
+        "/home/efren-cyborg/.pencil/mcp/visual_studio_code/out/mcp-server-linux-x64",
+        "--app",
+        "visual_studio_code",
+        "--agent",
+        "openCodeCLI"
+      ],
+      "enabled": true,
+      "type": "local"
+    },
+    "codebase-memory-mcp": {
+      "enabled": true,
+      "type": "local",
+      "command": [
+        "/home/efren-cyborg/.local/bin/codebase-memory-mcp"
+      ]
+    },
+    "open-design": {
+      "type": "local",
+      "command": [
+        "/home/efren-cyborg/.local/share/mise/installs/node/24.18.0/bin/node",
+        "/home/efren-cyborg/open-design/apps/daemon/dist/cli.js",
+        "mcp"
+      ],
+      "enabled": true,
+      "environment": {
+        "OD_DATA_DIR": "/home/efren-cyborg/open-design/.od",
+        "OD_SIDECAR_IPC_PATH": "/tmp/open-design/ipc/default/daemon.sock"
+      }
+    }
+  }
 }

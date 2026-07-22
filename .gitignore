@@ -2,3 +2,32 @@
 # Python bytecode (orchestrator)
 __pycache__/
 *.pyc
+
+# Node dependencies (user config snapshot may include these)
+node_modules/
+
+# Code editor caches / locks
+config/Code/*.lock
+config/Code/Backups/
+config/Code/blob_storage/
+config/Code/Cache*/
+config/Code/Cached*
+config/Code/Code Cache/
+config/Code/Dawn*
+config/Code/Dictionaries/
+config/Code/GPUCache/
+config/Code/Local Storage/
+config/Code/Partitions/
+config/Code/Service Worker/
+config/Code/Session Storage/
+config/Code/Shared Dictionary/
+config/Code/WebStorage/
+
+# Wrangler (Cloudflare)
+config/.wrangler/
+
+# Spotify user data
+config/spotify/Users/
+
+# LibreOffice (regenerates on launch)
+config/libreoffice/.~lock.*

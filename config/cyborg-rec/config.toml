@@ -1,0 +1,22 @@
+video_dir = "/home/efren-cyborg/Videos"
+fps = 30
+quality = "high"
+audio_source = "Both"
+selected_microphone = "alsa_input.usb-3142_Fifine_Microphone-00.mono-fallback"
+
+[theme]
+primary_color = [
+    255,
+    165,
+    0,
+]
+secondary_color = [
+    255,
+    0,
+    0,
+]
+text_color = [
+    150,
+    150,
+    150,
+]
