@@ -7,6 +7,7 @@ Rectangle {
   height: 480
   color: "#1a1b26"
 
+  property int maxLogoHeight: Math.round(root.height * 0.45)
   property string currentUser: userModel.lastUser
   property bool loginFailed: false
   property int sessionIndex: {
@@ -37,8 +38,8 @@ Rectangle {
     Image {
       id: logo
       source: "logo.png"
-      width: Math.min(sourceSize.width, root.width * 0.8)
-      height: sourceSize.width > 0 ? Math.round(width * sourceSize.height / sourceSize.width) : 0
+      height: Math.min(sourceSize.height, maxLogoHeight)
+      width: sourceSize.width > 0 ? Math.round(height * sourceSize.width / sourceSize.height) : 0
       fillMode: Image.PreserveAspectFit
       anchors.horizontalCenter: parent.horizontalCenter
     }
