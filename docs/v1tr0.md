@@ -229,14 +229,39 @@ en el mismo arranque. La sesión ya encendida la protege **hyprlock**, no SDDM.
 
 ```bash
 omarchy-v1tr0-login                    # autologin según cifrado (por defecto)
+omarchy-v1tr0-login --check            # verifica y sale != 0 si algo está roto
 omarchy-v1tr0-login --autologin off    # fuerza el greeter de SDDM
 omarchy-v1tr0-login --autologin on     # fuerza autologin
+omarchy-v1tr0-login --user NOMBRE      # autologin para otro usuario
 omarchy-v1tr0-login --dry-run          # muestra qué haría, sin tocar nada
 ```
 
 Idempotente. Se ejecuta **como usuario, nunca con sudo** (necesita `$HOME` para
 resolver el tema; pide sudo por sí mismo). Es lo que invocan tanto el hook
 `post-update.d/10-v1tr0.sh` como `install/login/v1tr0.sh`.
+
+### `--check`: la parte que evita repetir esta depuración
+
+Cada supuesto que alguna vez falló en el sistema vivo es hoy una comprobación
+que se ejecuta sola al final de cada aplicación, y a demanda:
+
+| Comprobación | El fallo que previene |
+|---|---|
+| Sin autologin duplicado | Convivían `2-autologin.conf` y `30-autologin.conf`; ganaba uno por orden alfabético, en silencio |
+| Usuario de autologin existe | `User=` apuntando a una cuenta inexistente |
+| `Session=` resuelve a un `.desktop` | El autologin caía al greeter sin explicación |
+| El `--config` del compositor existe | **Sin pantalla de login**: era el riesgo de `hyprland.lua` vs `.conf` |
+| Logo de Plymouth a escala de logotipo | La caja de contraseña fuera de pantalla, obligando a pulsar Esc |
+| `maxLogoHeight` presente en `Main.qml` | `omarchy-plymouth-set` lo pisa con la plantilla de upstream |
+| Tema SDDM idéntico al repo | El branding revertido tras una actualización |
+
+Sale con código distinto de cero si algo falla, así que sirve en CI o encadenado.
+
+### El autologin se genera, no se versiona
+
+`30-autologin.conf` **no está en el repo**: se genera en tiempo de aplicación con
+el usuario real (`--user`, o `$USER` por defecto). Un archivo versionado con un
+nombre de usuario dentro haría el repo inservible en cualquier otra máquina.
 
 ### Los tres fallos que resolvió, y por qué se repiten
 
@@ -293,9 +318,8 @@ el hook invoca la copia del repo por ruta explícita.
 
 | Archivo | Papel |
 |---|---|
-| `bin/omarchy-v1tr0-login` | Mecanismo único, idempotente |
+| `bin/omarchy-v1tr0-login` | Mecanismo único, idempotente, con `--check` |
 | `bin/omarchy-refresh-sddm` | Tema SDDM desde el repo, no desde upstream |
-| `etc/sddm.conf.d/30-autologin.conf` | Autologin (`User=`, `Session=omarchy`) |
 | `etc/sddm.conf.d/10-wayland.conf` | `CompositorCommand` del greeter |
 | `default/sddm/hyprland.lua` | Compositor del greeter (formato actual) |
 | `default/sddm/hyprland.conf` | Ídem en formato legacy, plan B para revertir |

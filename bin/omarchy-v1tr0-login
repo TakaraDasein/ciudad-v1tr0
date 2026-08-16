@@ -1,40 +1,49 @@
 #!/bin/bash
 
-# omarchy:summary=Aplica el esquema de login v1tr0 (Plymouth + SDDM + autologin)
-# omarchy:args=[--autologin auto|on|off] [--dry-run]
-# omarchy:examples=omarchy v1tr0 login | omarchy v1tr0 login --autologin off
+# omarchy:summary=Aplica y verifica el esquema de login v1tr0 (Plymouth + SDDM + autologin)
+# omarchy:args=[--check] [--autologin auto|on|off] [--user USER] [--dry-run]
+# omarchy:examples=omarchy v1tr0 login | omarchy v1tr0 login --check
 # omarchy:requires-sudo=true
 #
-# Idempotente: se puede ejecutar tantas veces como haga falta.
-# NO ejecutar con sudo -- necesita $HOME para resolver el tema v1tr0.
-# Pide sudo por si mismo donde hace falta.
+# Idempotente. NO ejecutar con sudo -- necesita $HOME para resolver el tema
+# v1tr0; pide sudo por si mismo donde hace falta.
+#
+# --check no cambia nada: verifica la cadena completa del login y sale con
+# codigo != 0 si algo esta roto. Pensado para correr tras cada actualizacion.
 #
 # Ver docs/v1tr0.md, seccion "Login", para el porque de cada paso.
 
 set -euo pipefail
 
-# El tema coloca la caja de contrasena JUSTO DEBAJO del logo:
+# El tema de Plymouth coloca la caja de contrasena JUSTO DEBAJO del logo:
 #   entry.y = logo.y + logo.height + 40,  con logo.y = (alto - logo.height)/2
-# Un logo a pantalla completa empuja la caja fuera del monitor. Tope conservador
-# que deja la caja visible en cualquier pantalla de 800px de alto o mas.
+# Un logo a pantalla completa la empuja fuera del monitor. Tope conservador que
+# la deja visible en cualquier pantalla de 800px de alto o mas.
 readonly MAX_LOGO_W=800
 readonly MAX_LOGO_H=300
 
+readonly SDDM_CONF_DIR=/etc/sddm.conf.d
+readonly PLYMOUTH_THEME=/usr/share/plymouth/themes/omarchy
+readonly SDDM_THEME=/usr/share/sddm/themes/omarchy
+
+mode="apply"
 autologin_mode="auto"
+target_user="${SUDO_USER:-$USER}"
 dry_run=0
 
 while (($#)); do
   case "$1" in
+    --check)     mode="check"; shift ;;
     --autologin) autologin_mode="${2:-}"; shift 2 ;;
+    --user)      target_user="${2:-}"; shift 2 ;;
     --dry-run)   dry_run=1; shift ;;
-    -h|--help)   sed -n '3,12p' "$0"; exit 0 ;;
+    -h|--help)   sed -n '3,15p' "$0"; exit 0 ;;
     *)           echo "Argumento desconocido: $1" >&2; exit 1 ;;
   esac
 done
 
-case "$autologin_mode" in
-  auto|on|off) ;;
-  *) echo "--autologin debe ser auto, on u off" >&2; exit 1 ;;
+case "$autologin_mode" in auto|on|off) ;; *)
+  echo "--autologin debe ser auto, on u off" >&2; exit 1 ;;
 esac
 
 if [[ $EUID -eq 0 ]]; then
@@ -50,12 +59,137 @@ warn() { printf '\033[33m==>\033[0m %s\n' "$*" >&2; }
 run()  { if ((dry_run)); then printf '   [dry-run] %s\n' "$*"; else "$@"; fi; }
 
 # --------------------------------------------------------------------------
-# 1. Autologin
+# Verificacion
+#
+# Cada supuesto que fallo alguna vez en el sistema vivo es una comprobacion
+# aqui. El objetivo es que un fallo se vea, en vez de descubrirse al reiniciar.
+# --------------------------------------------------------------------------
+checks_failed=0
+
+ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
+bad()  { printf '  \033[31m✗\033[0m %s\n' "$*"; checks_failed=$((checks_failed + 1)); }
+note() { printf '  \033[90m·\033[0m %s\n' "$*"; }
+
+# El greeter arranca un compositor con --config <ruta>. Si esa ruta no existe,
+# no hay compositor y por tanto no hay pantalla de login.
+check_compositor() {
+  local cmd cfg
+  cmd=$(grep -h '^CompositorCommand' "$SDDM_CONF_DIR"/*.conf 2>/dev/null || true)
+  if [[ -z $cmd ]]; then
+    note "Sin CompositorCommand (SDDM usara su default)"
+    return
+  fi
+  cfg=$(sed -n 's/.*--config \([^ ]*\).*/\1/p' <<<"$cmd")
+  if [[ -z $cfg ]]; then
+    note "CompositorCommand sin --config"
+  elif [[ -f $cfg ]]; then
+    ok "Compositor del greeter: $cfg existe"
+  else
+    bad "Compositor del greeter apunta a $cfg, QUE NO EXISTE (no habria login)"
+  fi
+}
+
+# Session=X debe resolver a un .desktop real, o el autologin cae al greeter.
+check_session() {
+  local session found=""
+  session=$(grep -h '^Session=' "$SDDM_CONF_DIR"/*.conf 2>/dev/null | cut -d= -f2 || true)
+  [[ -n $session ]] || { note "Sin Session= (el greeter dejara elegir)"; return; }
+
+  local d
+  for d in /usr/local/share/wayland-sessions /usr/share/wayland-sessions \
+           /usr/local/share/xsessions /usr/share/xsessions; do
+    [[ -f "$d/$session.desktop" ]] && { found="$d/$session.desktop"; break; }
+  done
+
+  if [[ -n $found ]]; then
+    ok "Sesion '$session' -> $found"
+  else
+    bad "Session=$session pero no existe ningun $session.desktop"
+  fi
+}
+
+check_autologin_user() {
+  local user
+  user=$(grep -h '^User=' "$SDDM_CONF_DIR"/*.conf 2>/dev/null | cut -d= -f2 || true)
+  if [[ -z $user ]]; then
+    note "Autologin desactivado: se pedira contrasena en el greeter"
+    return
+  fi
+  if id "$user" >/dev/null 2>&1; then
+    ok "Autologin para '$user' (usuario existente)"
+  else
+    bad "Autologin para '$user', QUE NO EXISTE en el sistema"
+  fi
+}
+
+# Una sola definicion de autologin. Historicamente convivieron 2-autologin.conf
+# y 30-autologin.conf, y ganaba el ultimo por orden alfabetico sin avisar.
+check_no_duplicates() {
+  # Glob en un array, no `ls | wc -l`: con set -o pipefail un ls sin
+  # coincidencias tumba el script entero en vez de contar cero.
+  local files=()
+  shopt -s nullglob
+  files=("$SDDM_CONF_DIR"/*autologin*.conf)
+  shopt -u nullglob
+
+  if ((${#files[@]} > 1)); then
+    bad "Hay ${#files[@]} archivos de autologin compitiendo en $SDDM_CONF_DIR"
+  else
+    ok "Sin archivos de autologin duplicados"
+  fi
+}
+
+# El fallo que obligaba a pulsar Esc para escribir la contrasena.
+check_plymouth_logo() {
+  local w h
+  [[ -f $PLYMOUTH_THEME/logo.png ]] || { bad "Falta $PLYMOUTH_THEME/logo.png"; return; }
+  read -r w h < <(magick identify -format '%w %h\n' "$PLYMOUTH_THEME/logo.png")
+  if (( w <= MAX_LOGO_W && h <= MAX_LOGO_H )); then
+    ok "Logo de Plymouth ${w}x${h} (la caja de contrasena cae en pantalla)"
+  else
+    bad "Logo de Plymouth ${w}x${h}: la caja quedara FUERA DE PANTALLA (hara falta Esc)"
+  fi
+}
+
+# omarchy-plymouth-set reinstala el Main.qml de upstream, sin este fix.
+check_sddm_theme() {
+  [[ -f $SDDM_THEME/Main.qml ]] || { bad "Falta $SDDM_THEME/Main.qml"; return; }
+  if grep -q maxLogoHeight "$SDDM_THEME/Main.qml"; then
+    ok "Tema SDDM conserva el fix de maxLogoHeight"
+  else
+    bad "Tema SDDM SIN maxLogoHeight: lo piso la plantilla de upstream"
+  fi
+
+  if diff -rq "$V1TR0_PATH/default/sddm/omarchy" "$SDDM_THEME" >/dev/null 2>&1; then
+    ok "Tema SDDM identico al del repo"
+  else
+    bad "Tema SDDM difiere del repo (ejecuta omarchy-v1tr0-login)"
+  fi
+}
+
+run_checks() {
+  log "Verificando el esquema de login"
+  check_no_duplicates
+  check_autologin_user
+  check_session
+  check_compositor
+  check_plymouth_logo
+  check_sddm_theme
+
+  echo
+  if ((checks_failed)); then
+    warn "$checks_failed comprobacion(es) FALLIDA(S)"
+    return 1
+  fi
+  log "Todo correcto"
+}
+
+# --------------------------------------------------------------------------
+# Autologin
 #
 # Omarchy lo habilita cuando la raiz esta cifrada: la passphrase de LUKS que se
 # escribe en Plymouth ya es la frontera de seguridad, y un segundo prompt en
-# SDDM le pregunta lo mismo a la misma persona en el mismo arranque. Se replica
-# ese criterio en vez de fijarlo a mano.
+# SDDM le pregunta lo mismo a la misma persona en el mismo arranque.
 # Referencia: should_enable_sddm_autologin() en bin/omarchy-upgrade-to-quattro
 # --------------------------------------------------------------------------
 root_filesystem_encrypted() {
@@ -64,15 +198,14 @@ root_filesystem_encrypted() {
 }
 
 apply_autologin() {
-  local conf_dir=/etc/sddm.conf.d
-  local stamp backup want=0
+  local stamp backup want=0 f
 
   case "$autologin_mode" in
     on)  want=1 ;;
     off) want=0 ;;
     auto)
       if root_filesystem_encrypted; then
-        want=1; log "Raiz cifrada detectada -> autologin ON (criterio de Omarchy)"
+        want=1; log "Raiz cifrada -> autologin ON (criterio de Omarchy)"
       else
         want=0; log "Raiz sin cifrar -> autologin OFF, se mostrara el greeter"
       fi
@@ -80,21 +213,38 @@ apply_autologin() {
   esac
 
   stamp="$(date +%Y%m%d-%H%M%S)"
-  backup="$conf_dir/backups-v1tr0/$stamp"
+  backup="$SDDM_CONF_DIR/backups-v1tr0/$stamp"
   run sudo mkdir -p "$backup"
-  for f in "$conf_dir"/*.conf; do
+  for f in "$SDDM_CONF_DIR"/*.conf; do
     [[ -e $f ]] && run sudo cp "$f" "$backup/$(basename "$f").bak"
   done
 
-  # Historicamente el archivo vivo se llamo 2-autologin.conf y el del repo
-  # 30-autologin.conf. Se borran todas las variantes antes de escribir, o
-  # acabarian dos archivos compitiendo y ganando el ultimo por orden alfabetico.
-  run sudo rm -f "$conf_dir"/*autologin*.conf
+  # Se borran TODAS las variantes antes de escribir: si conviven dos archivos
+  # de autologin gana el ultimo por orden alfabetico, en silencio.
+  run sudo rm -f "$SDDM_CONF_DIR"/*autologin*.conf
 
   if ((want)); then
-    run sudo install -m 0644 "$V1TR0_PATH/etc/sddm.conf.d/30-autologin.conf" \
-      "$conf_dir/30-autologin.conf"
-    log "Autologin activado (backup en $backup)"
+    # El archivo se GENERA con el usuario real. Versionarlo con un usuario
+    # dentro haria el repo inservible en cualquier otra maquina.
+    id "$target_user" >/dev/null 2>&1 || {
+      echo "El usuario '$target_user' no existe (usa --user)" >&2; exit 1; }
+
+    if ((dry_run)); then
+      printf '   [dry-run] generar %s con User=%s\n' \
+        "$SDDM_CONF_DIR/30-autologin.conf" "$target_user"
+    else
+      sudo tee "$SDDM_CONF_DIR/30-autologin.conf" >/dev/null <<EOF
+# Generado por omarchy-v1tr0-login. No editar a mano.
+#
+# Omarchy habilita el autologin cuando la raiz esta cifrada: la passphrase de
+# LUKS que se escribe en Plymouth al arrancar ya es la frontera de seguridad.
+# La sesion ya encendida la protege hyprlock, no SDDM.
+[Autologin]
+User=$target_user
+Session=omarchy
+EOF
+    fi
+    log "Autologin activado para '$target_user' (backup en $backup)"
   else
     log "Autologin desactivado (backup en $backup)"
     # Sin autologin el login pasa por contrasena, y pam_gnome_keyring crearia un
@@ -105,19 +255,12 @@ apply_autologin() {
 }
 
 # --------------------------------------------------------------------------
-# 2. Plymouth: garantizar que unlock.png tiene escala de LOGO, no de wallpaper
-#
-# Este es el fallo que obligaba a pulsar Esc para escribir la contrasena: con un
-# unlock.png de 1920x1080 la caja caia en y=1120 sobre una pantalla de 1080.
-# --------------------------------------------------------------------------
 ensure_logo_scale() {
   local theme_dir="$HOME/.config/omarchy/themes/v1tr0"
-  local unlock="$theme_dir/unlock.png"
-  local w h
+  local unlock="$theme_dir/unlock.png" w h
 
   [[ -f $unlock ]] || { warn "No existe $unlock, me salto Plymouth"; return 1; }
-
-  read -r w h < <(magick identify -format '%w %h' "$unlock")
+  read -r w h < <(magick identify -format '%w %h\n' "$unlock")
 
   if (( w <= MAX_LOGO_W && h <= MAX_LOGO_H )); then
     log "unlock.png ya tiene escala de logo (${w}x${h})"
@@ -126,21 +269,12 @@ ensure_logo_scale() {
 
   warn "unlock.png mide ${w}x${h}: es un wallpaper donde el tema espera un logo."
   warn "La caja de contrasena quedaria fuera de pantalla. Reescalando."
-
   run cp -n "$unlock" "$unlock.bak.${w}x${h}" || true
-  run magick "$unlock" -trim +repage \
-    -resize "${MAX_LOGO_W}x${MAX_LOGO_H}>" \
+  run magick "$unlock" -trim +repage -resize "${MAX_LOGO_W}x${MAX_LOGO_H}>" \
     -background none "$unlock"
   log "unlock.png ahora mide $(magick identify -format '%wx%h' "$unlock")"
 }
 
-# --------------------------------------------------------------------------
-# 3. Sesion Wayland
-#
-# El autologin apunta a Session=omarchy, que resuelve a este .desktop. Vivia
-# solo en /usr/local/share y no estaba versionado: una instalacion limpia se
-# quedaba sin la sesion y el autologin caia al greeter.
-# --------------------------------------------------------------------------
 ensure_wayland_session() {
   local dest=/usr/local/share/wayland-sessions/omarchy.desktop
   local src="$V1TR0_PATH/overlay/wayland-sessions/omarchy.desktop"
@@ -156,6 +290,11 @@ ensure_wayland_session() {
 
 # --------------------------------------------------------------------------
 main() {
+  if [[ $mode == check ]]; then
+    run_checks
+    return
+  fi
+
   ((dry_run)) && log "MODO DRY-RUN: no se cambia nada"
 
   ensure_wayland_session
@@ -167,24 +306,16 @@ main() {
     run omarchy-plymouth-set-by-theme v1tr0
   fi
 
-  # EL ORDEN IMPORTA. omarchy-plymouth-set tambien sobrescribe
-  # /usr/share/sddm/themes/omarchy/Main.qml con la plantilla de UPSTREAM (sin el
-  # fix de maxLogoHeight) y su logo.png. Restaurar el tema v1tr0 va DESPUES.
+  # EL ORDEN IMPORTA. omarchy-plymouth-set tambien sobrescribe el Main.qml de
+  # SDDM con la plantilla de UPSTREAM (sin maxLogoHeight) y su logo.png.
+  # Restaurar el tema v1tr0 va DESPUES.
   log "Restaurando el tema SDDM v1tr0"
   run "$V1TR0_PATH/bin/omarchy-refresh-sddm"
 
   ((dry_run)) && return 0
 
   echo
-  log "Estado resultante"
-  local user
-  user=$(grep -h '^User=' /etc/sddm.conf.d/*.conf 2>/dev/null || true)
-  printf '  autologin      : %s\n' "${user:-desactivado (se mostrara el greeter)}"
-  printf '  logo Plymouth  : %s\n' "$(magick identify -format '%wx%h' /usr/share/plymouth/themes/omarchy/logo.png)"
-  printf '  logo SDDM      : %s\n' "$(magick identify -format '%wx%h' /usr/share/sddm/themes/omarchy/logo.png)"
-  printf '  maxLogoHeight  : %s ocurrencias en Main.qml (debe ser >0)\n' \
-    "$(grep -c maxLogoHeight /usr/share/sddm/themes/omarchy/Main.qml || echo 0)"
-  printf '  compositor     : %s\n' "$(grep -h CompositorCommand /etc/sddm.conf.d/*.conf 2>/dev/null)"
+  run_checks
 }
 
 main

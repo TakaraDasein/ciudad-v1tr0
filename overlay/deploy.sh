@@ -15,8 +15,14 @@ cp -rv "$CONFIG_SRC/branding"/*     "$CONFIG_DST/branding/"
 cp -rv "$CONFIG_SRC/themes"/*       "$CONFIG_DST/themes/"
 
 # -- Hooks --
-cp -rv "$CONFIG_SRC/hooks"/*.sample "$CONFIG_DST/hooks/" 2>/dev/null || true
-cp -rv "$CONFIG_SRC/hooks/theme-set" "$CONFIG_DST/hooks/" 2>/dev/null || true
+# Sin 2>/dev/null: si estos copiados fallan hay que enterarse. Se usa nullglob
+# para que un patron sin coincidencias sea un caso normal, no un error mudo.
+shopt -s nullglob
+samples=("$CONFIG_SRC/hooks"/*.sample)
+((${#samples[@]})) && cp -rv "${samples[@]}" "$CONFIG_DST/hooks/"
+shopt -u nullglob
+
+[ -e "$CONFIG_SRC/hooks/theme-set" ] && cp -rv "$CONFIG_SRC/hooks/theme-set" "$CONFIG_DST/hooks/"
 
 for hook_dir in theme-set.d post-update.d post-boot.d; do
     for hook in "$CONFIG_SRC/hooks/$hook_dir"/*; do
@@ -40,12 +46,17 @@ if [ -f "$OVERLAY_DIR/bin/v1tr0-launch" ]; then
     chmod +x "$BIN_DST/v1tr0-launch"
 fi
 
-# -- SDDM theme --
-if [ -d "$OVERLAY_DIR/sddm/v1tr0-universal" ]; then
+# -- SDDM theme (alternativo, no es el login por defecto) --
+# El directorio se llama sddm-v1tr0-universal. Esta condicion comprobaba
+# "v1tr0-universal" y por tanto nunca se cumplio: el bloque jamas se ejecuto.
+if [ -d "$OVERLAY_DIR/sddm/sddm-v1tr0-universal" ]; then
     mkdir -p "$HOME/sddm-v1tr0-universal"
-    cp -rv "$OVERLAY_DIR/sddm/v1tr0-universal"/* "$HOME/sddm-v1tr0-universal/"
+    cp -rv "$OVERLAY_DIR/sddm/sddm-v1tr0-universal"/* "$HOME/sddm-v1tr0-universal/"
 fi
 
 echo "Overlay deployed."
-echo "Run: omarchy theme-set v1tr0"
-echo "And:  omarchy-hook post-update"
+echo
+echo "Siguientes pasos:"
+echo "  omarchy theme-set v1tr0"
+echo "  omarchy-v1tr0-login            # Plymouth + SDDM + autologin"
+echo "  omarchy-v1tr0-login --check    # verificar sin cambiar nada"
