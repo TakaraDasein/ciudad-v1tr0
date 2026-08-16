@@ -1,50 +1,58 @@
 #!/usr/bin/env bash
-# Desactiva el autologin de SDDM para que aparezca el greeter v1tr0.
-# Uso:  sudo bash aplicar-login-v1tr0.sh
+# Restablece el esquema de login de Omarchy para discos cifrados:
+# una sola contrasena, la de LUKS, escrita en la caja de Plymouth al arrancar.
+#
+# NO ejecutar con sudo: necesita tu $HOME para resolver el tema v1tr0.
+# El script pide sudo por si mismo donde hace falta.
 set -euo pipefail
 
-if [[ $EUID -ne 0 ]]; then
-  echo "Ejecuta con sudo: sudo bash $0"
+if [[ $EUID -eq 0 ]]; then
+  echo "No lo ejecutes con sudo. Lanzalo como tu usuario:  bash $0" >&2
   exit 1
 fi
 
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONF_DIR="/etc/sddm.conf.d"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="${CONF_DIR}/backups-v1tr0/${STAMP}"
 
-mkdir -p "$BACKUP_DIR"
+echo "==> Backup"
+sudo mkdir -p "$BACKUP_DIR"
 for f in "$CONF_DIR"/*.conf; do
-  [[ -e "$f" ]] && cp "$f" "$BACKUP_DIR/$(basename "$f").bak"
+  [[ -e $f ]] && sudo cp "$f" "$BACKUP_DIR/$(basename "$f").bak"
 done
-cp /etc/pam.d/sddm "$BACKUP_DIR/pam.d-sddm.bak"
-echo "Backup en: $BACKUP_DIR"
 
-# 1. El arreglo principal: sin autologin, SDDM muestra el greeter.
-#    El archivo vivo se llama 2-autologin.conf; borrar cualquier variante.
-shopt -s nullglob
-for f in "$CONF_DIR"/*autologin*.conf; do
-  rm -f "$f"
-  echo "Autologin desactivado: eliminado $(basename "$f")"
-done
-shopt -u nullglob
+# 1. Autologin. El archivo vivo se ha llamado historicamente 2-autologin.conf;
+#    se instala con el nombre del repo y se limpia cualquier variante previa
+#    para no acabar con dos archivos compitiendo.
+echo "==> Restaurando autologin"
+sudo rm -f "$CONF_DIR"/*autologin*.conf
+sudo install -m 0644 "$REPO/etc/sddm.conf.d/30-autologin.conf" "$CONF_DIR/30-autologin.conf"
 
-# 2. Con login por contrasena, pam_gnome_keyring crea un keyring cifrado que
-#    entra en conflicto con el keyring sin contrasena de Omarchy.
-#    Misma limpieza que hace install/login/sddm.sh
-if [[ -f /etc/pam.d/sddm ]]; then
-  sed -i '/-auth.*pam_gnome_keyring\.so/d' /etc/pam.d/sddm
-  sed -i '/-password.*pam_gnome_keyring\.so/d' /etc/pam.d/sddm
-  echo "PAM: lineas pam_gnome_keyring de auth/password eliminadas"
-fi
+# 2. Plymouth con el logo a escala correcta. Antes unlock.png era un wallpaper
+#    de 1920x1080 y el tema coloca la caja de contrasena justo debajo del logo
+#    (entry.y = logo.y + logo.height + 40), asi que caia fuera de la pantalla y
+#    obligaba a pulsar Esc. Con un logo de 800x269 la caja cae en y=714.
+#    Este comando reconstruye ademas la initramfs.
+echo "==> Aplicando tema Plymouth v1tr0 (reconstruye la initramfs, tarda)"
+omarchy-plymouth-set-by-theme v1tr0
+
+# 3. omarchy-plymouth-set sobrescribe /usr/share/sddm/themes/omarchy/Main.qml
+#    con la plantilla de UPSTREAM, que no tiene el fix de maxLogoHeight, y
+#    reemplaza logo.png por el que acabamos de pasarle. Hay que restaurar el
+#    tema v1tr0 despues, siempre en este orden.
+echo "==> Restaurando el tema SDDM v1tr0 (plymouth-set lo pisa)"
+"$REPO/bin/omarchy-refresh-sddm"
 
 echo
 echo "Estado resultante:"
-grep -rn "Autologin" "$CONF_DIR"/*.conf 2>/dev/null && echo "  !! queda autologin" || echo "  autologin: ninguno"
-echo "  tema:     $(grep -h Current "$CONF_DIR"/*.conf 2>/dev/null)"
-echo "  greeter:  $(grep -h CompositorCommand "$CONF_DIR"/*.conf 2>/dev/null)"
-ls -l /usr/share/sddm/hyprland.conf
+echo -n "  autologin: "; grep -h "^User=" "$CONF_DIR"/*.conf 2>/dev/null || echo "NINGUNO (!)"
+echo -n "  logo plymouth: "; magick identify -format "%wx%h\n" /usr/share/plymouth/themes/omarchy/logo.png
+echo -n "  logo sddm:     "; magick identify -format "%wx%h\n" /usr/share/sddm/themes/omarchy/logo.png
+echo "  maxLogoHeight en SDDM: $(grep -c maxLogoHeight /usr/share/sddm/themes/omarchy/Main.qml) (debe ser >0)"
 echo
-echo "Prueba el tema SIN reiniciar:"
-echo "  sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/omarchy"
-echo "Si se ve bien:  sudo systemctl restart sddm   (cierra tu sesion actual)"
-echo "Para revertir:  sudo cp $BACKUP_DIR/*.bak $CONF_DIR/  (renombrando sin .bak)"
+echo "Reinicia para probar. Deberias ver, en orden:"
+echo "  1. Plymouth con el logo v1tr0 y la caja de contrasena VISIBLE (sin Esc)"
+echo "  2. Escritorio directo, sin segunda contrasena"
+echo
+echo "Revertir:  sudo cp $BACKUP_DIR/<archivo>.bak $CONF_DIR/<archivo>"

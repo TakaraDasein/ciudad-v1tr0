@@ -11,6 +11,10 @@ if [[ ! -d "$V1TR0_PATH" ]]; then
   exit 1
 fi
 
+# EL ORDEN IMPORTA: omarchy-plymouth-set (al que llama esta linea) tambien
+# sobrescribe /usr/share/sddm/themes/omarchy/Main.qml con la plantilla de
+# UPSTREAM, sin el fix de maxLogoHeight, y reemplaza su logo.png. Por eso
+# omarchy-refresh-sddm tiene que ir DESPUES, nunca antes.
 omarchy-plymouth-set-by-theme v1tr0
 omarchy-refresh-limine || true
 
