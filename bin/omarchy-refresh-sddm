@@ -19,6 +19,11 @@ sudo cp -r "$SDDM_SOURCE/omarchy" /usr/share/sddm/themes/omarchy
 
 # The greeter's compositor config is referenced by CompositorCommand in
 # /etc/sddm.conf.d/10-wayland.conf; a missing file here means no login screen.
-if [[ -f "$SDDM_SOURCE/hyprland.conf" ]]; then
-  sudo cp "$SDDM_SOURCE/hyprland.conf" /usr/share/sddm/hyprland.conf
-fi
+# Both formats are installed: .lua is what CompositorCommand points at (the
+# .conf format is removed in Hyprland 0.57), .conf stays as a fallback to roll
+# back to from a TTY without needing the repo.
+for cfg in hyprland.lua hyprland.conf; do
+  if [[ -f "$SDDM_SOURCE/$cfg" ]]; then
+    sudo cp "$SDDM_SOURCE/$cfg" "/usr/share/sddm/$cfg"
+  fi
+done
