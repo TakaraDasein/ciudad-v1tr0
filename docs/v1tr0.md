@@ -197,6 +197,155 @@ sudo ./install.sh
 
 ---
 
+## Login
+
+### Cómo funciona realmente
+
+Con el disco cifrado, el arranque tiene **una sola contraseña** y la pide Plymouth:
+
+```
+UEFI → limine → UKI → initramfs (hook encrypt)
+                          │
+                          └─ Plymouth: caja de contraseña ← LA ÚNICA
+                                │
+                          LUKS abierto → raíz montada
+                                │
+                          SDDM → autologin → Hyprland
+```
+
+**La "pantalla de login con branding" es la de Plymouth, no la de SDDM.** El
+greeter de SDDM no puede pedir la contraseña del disco: vive *dentro* del disco
+cifrado y no existe hasta que este ya está abierto.
+
+Omarchy activa el autologin **precisamente porque el disco está cifrado**
+(`should_enable_sddm_autologin()` en `bin/omarchy-upgrade-to-quattro` termina
+llamando a `root_filesystem_encrypted()`). La passphrase de LUKS es la frontera
+de seguridad; un segundo prompt en SDDM le pregunta lo mismo a la misma persona
+en el mismo arranque. La sesión ya encendida la protege **hyprlock**, no SDDM.
+
+`bin/omarchy-v1tr0-login` replica ese criterio en vez de fijarlo a mano.
+
+### Comando único
+
+```bash
+omarchy-v1tr0-login                    # autologin según cifrado (por defecto)
+omarchy-v1tr0-login --autologin off    # fuerza el greeter de SDDM
+omarchy-v1tr0-login --autologin on     # fuerza autologin
+omarchy-v1tr0-login --dry-run          # muestra qué haría, sin tocar nada
+```
+
+Idempotente. Se ejecuta **como usuario, nunca con sudo** (necesita `$HOME` para
+resolver el tema; pide sudo por sí mismo). Es lo que invocan tanto el hook
+`post-update.d/10-v1tr0.sh` como `install/login/v1tr0.sh`.
+
+### Los tres fallos que resolvió, y por qué se repiten
+
+**1. El logo gigante deja la caja de contraseña fuera de pantalla.**
+
+`default/plymouth/omarchy.script` coloca la caja justo debajo del logo:
+
+```
+logo.y  = (alto_pantalla - logo.height) / 2
+entry.y = logo.y + logo.height + 40
+```
+
+Con `unlock.png` de 1920×1080 en una pantalla de 1080: `entry.y = 1120`, es
+decir **40 px por debajo del borde inferior**. Síntoma: sólo se ve el wallpaper
+y hay que pulsar **Esc** para llegar al prompt de texto de Plymouth. El logo de
+Omarchy mide 800×188; `unlock.png` debe ser un **logotipo**, no un wallpaper.
+
+`ensure_logo_scale()` reescala automáticamente cualquier imagen que supere
+800×300, así que el fallo no puede volver a colarse.
+
+Es la misma familia que el bug de SDDM que se arregló con `maxLogoHeight` en
+`Main.qml` (commit `b60a3955`): imágenes v1tr0 mucho mayores de lo que el tema
+asume.
+
+**2. `omarchy-plymouth-set` sobrescribe el tema de SDDM.**
+
+No es evidente por el nombre, pero al final del script hace:
+
+```bash
+sddm_template="$HOME/.local/share/omarchy/default/sddm/omarchy/Main.qml"   # UPSTREAM
+sed ... "$sddm_template" | sudo tee /usr/share/sddm/themes/omarchy/Main.qml
+sudo cp "$logo_path" /usr/share/sddm/themes/omarchy/logo.png
+```
+
+Instala el `Main.qml` de **upstream**, sin el fix de `maxLogoHeight`. Por eso
+**`omarchy-refresh-sddm` tiene que ejecutarse DESPUÉS**, nunca antes. Durante un
+tiempo el login se salvó por el orden accidental del hook, no por diseño.
+
+También reconstruye la initramfs — de ahí que la UKI se compile dos veces
+durante un `omarchy update`.
+
+**3. El branding se perdía en cada actualización.**
+
+`omarchy-refresh-sddm` de upstream copia desde `$OMARCHY_PATH`
+(`~/.local/share/omarchy`), cuyo `logo.png` es el genérico de 3072 bytes. La
+versión de este repo prefiere el tema v1tr0 y sólo cae a upstream si no lo
+encuentra.
+
+Relacionado: el comando que se ejecuta desde `$PATH` es el de
+`~/.local/share/omarchy/bin/`, **que cada actualización sobrescribe**. Por eso
+el hook invoca la copia del repo por ruta explícita.
+
+### Archivos que componen el esquema
+
+| Archivo | Papel |
+|---|---|
+| `bin/omarchy-v1tr0-login` | Mecanismo único, idempotente |
+| `bin/omarchy-refresh-sddm` | Tema SDDM desde el repo, no desde upstream |
+| `etc/sddm.conf.d/30-autologin.conf` | Autologin (`User=`, `Session=omarchy`) |
+| `etc/sddm.conf.d/10-wayland.conf` | `CompositorCommand` del greeter |
+| `default/sddm/hyprland.lua` | Compositor del greeter (formato actual) |
+| `default/sddm/hyprland.conf` | Ídem en formato legacy, plan B para revertir |
+| `default/sddm/omarchy/` | Tema SDDM con logo v1tr0 y `maxLogoHeight` |
+| `themes/v1tr0/unlock.png` | Logo de Plymouth (**escala de logotipo**) |
+| `overlay/wayland-sessions/omarchy.desktop` | Sesión a la que apunta `Session=omarchy` |
+| `install/login/v1tr0.sh` | Enganche en la instalación |
+| `overlay/config/omarchy/hooks/post-update.d/10-v1tr0.sh` | Reaplicación tras update |
+
+### Compositor del greeter: `.conf` vs `.lua`
+
+Hyprland elimina el formato `.conf` en **0.57**. `CompositorCommand` apunta a
+`/usr/share/sddm/hyprland.lua`; `omarchy-refresh-sddm` instala **ambos**
+formatos a propósito, para poder revertir desde una TTY sin depender del repo.
+
+Un `CompositorCommand` que apunte a un archivo inexistente deja el greeter sin
+compositor y **sin pantalla de login**. Verificar siempre:
+
+```bash
+ls -l /usr/share/sddm/hyprland.*
+grep -h CompositorCommand /etc/sddm.conf.d/*.conf
+```
+
+> El aviso *"You are using the .conf config format"* que aparece en el
+> escritorio es de la **sesión de usuario** (`~/.config/hypr/*.conf`), no del
+> greeter, y desaparecerá cuando Omarchy publique la migración a lua.
+
+### Verificación y recuperación
+
+Probar el tema SDDM **sin reiniciar**:
+
+```bash
+sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/omarchy
+```
+
+Comprobar que un update no rompió nada:
+
+```bash
+omarchy-v1tr0-login --dry-run
+diff -rq default/sddm/omarchy /usr/share/sddm/themes/omarchy
+magick identify /usr/share/plymouth/themes/omarchy/logo.png   # NO 1920x1080
+```
+
+**Antes de tocar `/etc/sddm.conf.d/`, dejar una TTY con sesión abierta
+(Ctrl+Alt+F2).** Cada ejecución deja copia con marca de tiempo en
+`/etc/sddm.conf.d/backups-v1tr0/<timestamp>/`; revertir es copiar el `.bak`
+correspondiente y `sudo systemctl restart sddm`.
+
+---
+
 ## Historial de Cambios
 
 ### Commit 1 — Branding inicial

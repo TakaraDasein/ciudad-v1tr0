@@ -1,21 +1,17 @@
 #!/bin/bash
 
-# Re-applies v1tr0 branding after an Omarchy update.
+# Reaplica el branding v1tr0 despues de una actualizacion de Omarchy.
 #
-# This hook lives in ~/.config/omarchy/hooks/ and so cannot derive the v1tr0
-# repo location from its own path. Override with V1TR0_PATH if the repo moves.
+# Este hook vive en ~/.config/omarchy/hooks/, asi que no puede deducir la
+# ubicacion del repo v1tr0 desde su propia ruta. Usa V1TR0_PATH para moverlo.
 V1TR0_PATH="${V1TR0_PATH:-$HOME/1.Cyborg-Town/2.Daten-Town/6.v1tr0-sistema-operativo/omarchy}"
+export V1TR0_PATH
 
 if [[ ! -d "$V1TR0_PATH" ]]; then
-  echo "10-v1tr0: v1tr0 repo not found at $V1TR0_PATH — branding NOT reapplied" >&2
+  echo "10-v1tr0: repo v1tr0 no encontrado en $V1TR0_PATH — branding NO reaplicado" >&2
   exit 1
 fi
 
-# EL ORDEN IMPORTA: omarchy-plymouth-set (al que llama esta linea) tambien
-# sobrescribe /usr/share/sddm/themes/omarchy/Main.qml con la plantilla de
-# UPSTREAM, sin el fix de maxLogoHeight, y reemplaza su logo.png. Por eso
-# omarchy-refresh-sddm tiene que ir DESPUES, nunca antes.
-omarchy-plymouth-set-by-theme v1tr0
 omarchy-refresh-limine || true
 
 # Sin omarchy-refresh-config: exige la ruta de un archivo como argumento, asi
@@ -23,10 +19,10 @@ omarchy-refresh-limine || true
 # ocultaba). Pasarle argumentos seria peor: sobrescribe ~/.config/<x> con el
 # default de upstream, tirando la configuracion propia.
 
-# Deliberately the repo's copy, not the one on PATH: an update overwrites
-# ~/.local/share/omarchy/bin/omarchy-refresh-sddm with the upstream version,
-# which refreshes the theme from upstream and wipes the v1tr0 logo.
+# Todo el esquema de login (Plymouth, SDDM, autologin, sesion Wayland) en un
+# solo comando idempotente, que ademas respeta el orden critico entre
+# omarchy-plymouth-set y omarchy-refresh-sddm. Ver docs/v1tr0.md.
 #
-# Errors are NOT silenced here. A previous version piped this to /dev/null,
-# which is why the branding regression went unnoticed after an update.
-"$V1TR0_PATH/bin/omarchy-refresh-sddm"
+# Los errores NO se silencian. Una version anterior mandaba esto a /dev/null,
+# que es por lo que la regresion del branding paso desapercibida tras un update.
+"$V1TR0_PATH/bin/omarchy-v1tr0-login"

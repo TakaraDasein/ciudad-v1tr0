@@ -1,0 +1,190 @@
+#!/bin/bash
+
+# omarchy:summary=Aplica el esquema de login v1tr0 (Plymouth + SDDM + autologin)
+# omarchy:args=[--autologin auto|on|off] [--dry-run]
+# omarchy:examples=omarchy v1tr0 login | omarchy v1tr0 login --autologin off
+# omarchy:requires-sudo=true
+#
+# Idempotente: se puede ejecutar tantas veces como haga falta.
+# NO ejecutar con sudo -- necesita $HOME para resolver el tema v1tr0.
+# Pide sudo por si mismo donde hace falta.
+#
+# Ver docs/v1tr0.md, seccion "Login", para el porque de cada paso.
+
+set -euo pipefail
+
+# El tema coloca la caja de contrasena JUSTO DEBAJO del logo:
+#   entry.y = logo.y + logo.height + 40,  con logo.y = (alto - logo.height)/2
+# Un logo a pantalla completa empuja la caja fuera del monitor. Tope conservador
+# que deja la caja visible en cualquier pantalla de 800px de alto o mas.
+readonly MAX_LOGO_W=800
+readonly MAX_LOGO_H=300
+
+autologin_mode="auto"
+dry_run=0
+
+while (($#)); do
+  case "$1" in
+    --autologin) autologin_mode="${2:-}"; shift 2 ;;
+    --dry-run)   dry_run=1; shift ;;
+    -h|--help)   sed -n '3,12p' "$0"; exit 0 ;;
+    *)           echo "Argumento desconocido: $1" >&2; exit 1 ;;
+  esac
+done
+
+case "$autologin_mode" in
+  auto|on|off) ;;
+  *) echo "--autologin debe ser auto, on u off" >&2; exit 1 ;;
+esac
+
+if [[ $EUID -eq 0 ]]; then
+  echo "No lo ejecutes con sudo. Lanzalo como tu usuario." >&2
+  exit 1
+fi
+
+V1TR0_PATH="${V1TR0_PATH:-$HOME/1.Cyborg-Town/2.Daten-Town/6.v1tr0-sistema-operativo/omarchy}"
+[[ -d $V1TR0_PATH ]] || { echo "No encuentro el repo v1tr0 en $V1TR0_PATH" >&2; exit 1; }
+
+log()  { printf '\033[32m==>\033[0m %s\n' "$*"; }
+warn() { printf '\033[33m==>\033[0m %s\n' "$*" >&2; }
+run()  { if ((dry_run)); then printf '   [dry-run] %s\n' "$*"; else "$@"; fi; }
+
+# --------------------------------------------------------------------------
+# 1. Autologin
+#
+# Omarchy lo habilita cuando la raiz esta cifrada: la passphrase de LUKS que se
+# escribe en Plymouth ya es la frontera de seguridad, y un segundo prompt en
+# SDDM le pregunta lo mismo a la misma persona en el mismo arranque. Se replica
+# ese criterio en vez de fijarlo a mano.
+# Referencia: should_enable_sddm_autologin() en bin/omarchy-upgrade-to-quattro
+# --------------------------------------------------------------------------
+root_filesystem_encrypted() {
+  sudo bash -c '[[ -s /etc/crypttab ]] && grep -qvE "^[[:space:]]*(#|$)" /etc/crypttab' 2>/dev/null && return 0
+  lsblk -o FSTYPE --noheadings 2>/dev/null | grep -q crypto_LUKS
+}
+
+apply_autologin() {
+  local conf_dir=/etc/sddm.conf.d
+  local stamp backup want=0
+
+  case "$autologin_mode" in
+    on)  want=1 ;;
+    off) want=0 ;;
+    auto)
+      if root_filesystem_encrypted; then
+        want=1; log "Raiz cifrada detectada -> autologin ON (criterio de Omarchy)"
+      else
+        want=0; log "Raiz sin cifrar -> autologin OFF, se mostrara el greeter"
+      fi
+      ;;
+  esac
+
+  stamp="$(date +%Y%m%d-%H%M%S)"
+  backup="$conf_dir/backups-v1tr0/$stamp"
+  run sudo mkdir -p "$backup"
+  for f in "$conf_dir"/*.conf; do
+    [[ -e $f ]] && run sudo cp "$f" "$backup/$(basename "$f").bak"
+  done
+
+  # Historicamente el archivo vivo se llamo 2-autologin.conf y el del repo
+  # 30-autologin.conf. Se borran todas las variantes antes de escribir, o
+  # acabarian dos archivos compitiendo y ganando el ultimo por orden alfabetico.
+  run sudo rm -f "$conf_dir"/*autologin*.conf
+
+  if ((want)); then
+    run sudo install -m 0644 "$V1TR0_PATH/etc/sddm.conf.d/30-autologin.conf" \
+      "$conf_dir/30-autologin.conf"
+    log "Autologin activado (backup en $backup)"
+  else
+    log "Autologin desactivado (backup en $backup)"
+    # Sin autologin el login pasa por contrasena, y pam_gnome_keyring crearia un
+    # keyring cifrado que choca con el keyring sin contrasena de Omarchy.
+    run sudo sed -i -e '/-auth.*pam_gnome_keyring\.so/d' \
+                    -e '/-password.*pam_gnome_keyring\.so/d' /etc/pam.d/sddm
+  fi
+}
+
+# --------------------------------------------------------------------------
+# 2. Plymouth: garantizar que unlock.png tiene escala de LOGO, no de wallpaper
+#
+# Este es el fallo que obligaba a pulsar Esc para escribir la contrasena: con un
+# unlock.png de 1920x1080 la caja caia en y=1120 sobre una pantalla de 1080.
+# --------------------------------------------------------------------------
+ensure_logo_scale() {
+  local theme_dir="$HOME/.config/omarchy/themes/v1tr0"
+  local unlock="$theme_dir/unlock.png"
+  local w h
+
+  [[ -f $unlock ]] || { warn "No existe $unlock, me salto Plymouth"; return 1; }
+
+  read -r w h < <(magick identify -format '%w %h' "$unlock")
+
+  if (( w <= MAX_LOGO_W && h <= MAX_LOGO_H )); then
+    log "unlock.png ya tiene escala de logo (${w}x${h})"
+    return 0
+  fi
+
+  warn "unlock.png mide ${w}x${h}: es un wallpaper donde el tema espera un logo."
+  warn "La caja de contrasena quedaria fuera de pantalla. Reescalando."
+
+  run cp -n "$unlock" "$unlock.bak.${w}x${h}" || true
+  run magick "$unlock" -trim +repage \
+    -resize "${MAX_LOGO_W}x${MAX_LOGO_H}>" \
+    -background none "$unlock"
+  log "unlock.png ahora mide $(magick identify -format '%wx%h' "$unlock")"
+}
+
+# --------------------------------------------------------------------------
+# 3. Sesion Wayland
+#
+# El autologin apunta a Session=omarchy, que resuelve a este .desktop. Vivia
+# solo en /usr/local/share y no estaba versionado: una instalacion limpia se
+# quedaba sin la sesion y el autologin caia al greeter.
+# --------------------------------------------------------------------------
+ensure_wayland_session() {
+  local dest=/usr/local/share/wayland-sessions/omarchy.desktop
+  local src="$V1TR0_PATH/overlay/wayland-sessions/omarchy.desktop"
+
+  [[ -f $src ]] || { warn "No existe $src, me salto la sesion"; return 0; }
+  if [[ -f $dest ]] && cmp -s "$src" "$dest"; then
+    log "Sesion Wayland ya instalada"
+    return 0
+  fi
+  run sudo install -Dm 0644 "$src" "$dest"
+  log "Sesion Wayland instalada en $dest"
+}
+
+# --------------------------------------------------------------------------
+main() {
+  ((dry_run)) && log "MODO DRY-RUN: no se cambia nada"
+
+  ensure_wayland_session
+  apply_autologin
+
+  if ensure_logo_scale; then
+    # omarchy-plymouth-set reconstruye la initramfs: es el paso lento.
+    log "Aplicando tema Plymouth v1tr0 (reconstruye la initramfs, tarda)"
+    run omarchy-plymouth-set-by-theme v1tr0
+  fi
+
+  # EL ORDEN IMPORTA. omarchy-plymouth-set tambien sobrescribe
+  # /usr/share/sddm/themes/omarchy/Main.qml con la plantilla de UPSTREAM (sin el
+  # fix de maxLogoHeight) y su logo.png. Restaurar el tema v1tr0 va DESPUES.
+  log "Restaurando el tema SDDM v1tr0"
+  run "$V1TR0_PATH/bin/omarchy-refresh-sddm"
+
+  ((dry_run)) && return 0
+
+  echo
+  log "Estado resultante"
+  local user
+  user=$(grep -h '^User=' /etc/sddm.conf.d/*.conf 2>/dev/null || true)
+  printf '  autologin      : %s\n' "${user:-desactivado (se mostrara el greeter)}"
+  printf '  logo Plymouth  : %s\n' "$(magick identify -format '%wx%h' /usr/share/plymouth/themes/omarchy/logo.png)"
+  printf '  logo SDDM      : %s\n' "$(magick identify -format '%wx%h' /usr/share/sddm/themes/omarchy/logo.png)"
+  printf '  maxLogoHeight  : %s ocurrencias en Main.qml (debe ser >0)\n' \
+    "$(grep -c maxLogoHeight /usr/share/sddm/themes/omarchy/Main.qml || echo 0)"
+  printf '  compositor     : %s\n' "$(grep -h CompositorCommand /etc/sddm.conf.d/*.conf 2>/dev/null)"
+}
+
+main
