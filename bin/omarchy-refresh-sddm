@@ -3,5 +3,22 @@
 # omarchy:summary=Refresh the SDDM theme from default
 # omarchy:requires-sudo=true
 
+# Prefer the v1tr0 theme over whatever $OMARCHY_PATH points at. Upstream Omarchy
+# ships a generic logo.png, so refreshing from $OMARCHY_PATH after an update is
+# what silently reverts the v1tr0 branding.
+V1TR0_PATH="${V1TR0_PATH:-$HOME/1.Cyborg-Town/2.Daten-Town/6.v1tr0-sistema-operativo/omarchy}"
+
+if [[ -d "$V1TR0_PATH/default/sddm/omarchy" ]]; then
+  SDDM_SOURCE="$V1TR0_PATH/default/sddm"
+else
+  SDDM_SOURCE="$OMARCHY_PATH/default/sddm"
+fi
+
 sudo rm -rf /usr/share/sddm/themes/omarchy
-sudo cp -r "$OMARCHY_PATH/default/sddm/omarchy" /usr/share/sddm/themes/omarchy
+sudo cp -r "$SDDM_SOURCE/omarchy" /usr/share/sddm/themes/omarchy
+
+# The greeter's compositor config is referenced by CompositorCommand in
+# /etc/sddm.conf.d/10-wayland.conf; a missing file here means no login screen.
+if [[ -f "$SDDM_SOURCE/hyprland.conf" ]]; then
+  sudo cp "$SDDM_SOURCE/hyprland.conf" /usr/share/sddm/hyprland.conf
+fi
