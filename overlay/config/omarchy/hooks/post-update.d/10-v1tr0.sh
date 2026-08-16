@@ -13,7 +13,11 @@ fi
 
 omarchy-plymouth-set-by-theme v1tr0
 omarchy-refresh-limine || true
-omarchy-refresh-config || true
+
+# Sin omarchy-refresh-config: exige la ruta de un archivo como argumento, asi
+# que la llamada desnuda que habia aqui nunca hizo nada (el 2>/dev/null lo
+# ocultaba). Pasarle argumentos seria peor: sobrescribe ~/.config/<x> con el
+# default de upstream, tirando la configuracion propia.
 
 # Deliberately the repo's copy, not the one on PATH: an update overwrites
 # ~/.local/share/omarchy/bin/omarchy-refresh-sddm with the upstream version,
